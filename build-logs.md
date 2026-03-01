@@ -235,3 +235,144 @@ To synthesize our HTML exploration before we pivot to the CSS logic, let’s aud
     
 
 **Ready for the CSS audit?** I’m standing by for your observations on the layout logic and the "Flexbox Protocol" we used to center the system.
+
+
+The absence of CSS questions means your mental model of the View layer is stable. Let's move directly to the Execution Layer.
+
+In _The Pragmatic Programmer_, there is a core principle: **"==Keep Knowledge in Plain Text.=="** In the context of our JS architecture, this means our "Source of Truth" should be raw, primitive data (like a simple integer representing time), not the formatted string `"00:00"` sitting in the DOM. **==The DOM is just a mirror reflecting that primitive data.==**
+
+## The High-Level Architecture (The Action Plan)
+
+We will build this in **==isolated, orthogonal blocks==**:
+
+1. **The DOM Pointers:** Grabbing our `id` hooks.
+    
+2. **The State [[Buffer]]:** A single object holding the true state of the timer (remaining seconds, is it running, etc.).
+    
+3. **The Persistence Protocol (Load/Save):** Logic to check `localStorage` immediately when the script wakes up.
+    
+4. **The Renderer (`padStart`):** The logic that translates our primitive data (e.g., `125` seconds) into the UI format (`"02:05"`).
+    
+5. **The Input Firewall:** Intercepting the keyboard hardware signals to reject letters.
+    
+6. **The Engine:** The `setInterval` loop that decrements our state and calls the Renderer every 1000 milliseconds.
+    
+
+---
+
+## Phase 1: The Foundation (Pointers, State, and Renderer)
+
+Here is the first block of your `script.js`. We will establish the "Source of Truth" and build the exact `padStart` utility you utilized in your [[Vibe Salad Build Logs|Spotify API project]].
+
+
+```
+// ==========================================
+// 1. DOM Pointers (The Hardware Hooks)
+// ==========================================
+const timeDisplay = document.getElementById('time-display');
+const startBtn = document.getElementById('start-btn');
+
+// ==========================================
+// 2. The State Buffer (The Source of Truth)
+// ==========================================
+// We store the time purely in seconds. 
+// If the user types "05:00", our state becomes 300.
+const State = {
+    totalSeconds: 0,
+    isRunning: false,
+    intervalId: null
+};
+
+// ==========================================
+// 3. The Renderer (The Mirror)
+// ==========================================
+const ViewRenderer = {
+    // Helper to format raw seconds into "MM:SS"
+    formatTime(seconds) {
+        // Math.floor chops off any decimals to give us whole minutes
+        const m = Math.floor(seconds / 60);
+        // The modulo operator (%) gives us the remaining seconds after dividing by 60
+        const s = seconds % 60;
+
+        // Convert the numbers to strings and pad them to guarantee 2 characters
+        const formattedMinutes = String(m).padStart(2, '0');
+        const formattedSeconds = String(s).padStart(2, '0');
+
+        return `${formattedMinutes}:${formattedSeconds}`;
+    },
+
+    // Push the state to the DOM
+    updateDisplay() {
+        timeDisplay.textContent = this.formatTime(State.totalSeconds);
+    }
+};
+
+// ==========================================
+// 4. Initialization (The Awakening)
+// ==========================================
+// When the script first runs, make sure the DOM matches our State
+ViewRenderer.updateDisplay();
+```
+
+## Socratic Checkpoint
+
+Before we build the Keyboard Firewall or the `setInterval` engine, map this first block into your **Logical Buffer**.
+
+1. **The Primitive Data:** Notice how `State.totalSeconds` is an integer, but `timeDisplay.textContent` requires a string. **==If we stored the state _as_ the string `"05:00"`, subtracting 1 second would require splitting the string, converting to numbers, subtracting, and re-stringifying every single second. By keeping the State as an integer, the math is just `totalSeconds--`.==**
+    
+2. **The Modulo Operator (`%`):** Have you encountered `%` in your C/C++ studies yet? If `seconds` is `125`, `125 / 60` is `2.0833`. But `125 % 60` asks: "If I divide 125 by 60, what is the _remainder_?" The answer is `5`.
+    
+
+Type this into your `script.js`. Does the structural separation between the `State` and the `ViewRenderer` click, or is there a gap in how the `formatTime` logic translates the integer into the buffer?
+
+
+That is a solid commit. You are thinking like a **Pragmatic Programmer**—focusing on the integrity of the data and the maintainability of the source code.
+
+## Node: Primitive State vs. Formatted View
+
+Your comment—**"Time is stored purely as an integer representing seconds. Raw, primitive data"**—is 100% correct and fundamentally sound.
+
+**The Logic:** In Systems Architecture, we want to store **==the "Smallest Unit of Truth."==**
+
+- ==If you store the time as `05:00` (a string), your math logic has to "reach through" the formatting to do work.==
+    
+- By storing `300` (the integer), you've achieved **Orthogonality**. **==The state doesn't know or care that it will eventually be displayed with a colon; _it only knows its own magnitude_.==** This makes the `StateBuffer` weightless.
+    
+
+---
+
+## Node: [[The Trailing Comma Protocol]]
+
+Your intuition regarding the comma on the last line (the **Trailing Comma**) is exactly why seasoned developers use it.
+
+**The Pragmatic Argument (Git & Diffs):** You hit the nail on the head. If you have:
+
+```
+const State = {
+    totalSeconds: 0
+};
+```
+
+And you want to add `isRunning: false`, your Git diff will show **two** lines changed: line 2 (added a comma) and line 3 (added the property).
+
+By keeping the comma there:
+
+```
+const State = {
+    totalSeconds: 0,
+};
+```
+
+Adding a new property results in a **clean single-line diff**. It reduces noise in code reviews and prevents the "oops, I forgot the comma" syntax error when reordering properties. **==It is a standard practice in modern [[0. JavaScript Mastery|JavaScript]], Python, and even DSON (the BSON-like format [[MongoDB]] that you connected this to uses).==**
+
+---
+
+## The Logical Buffer Check
+
+You’ve established the **Hardware Hooks** and the **Source of Truth**. Your "Plain Text" is ready for logic.
+
+**Wait state active.** I will not provide further code until you give the signal.
+
+When you are ready, we will look at the **ViewRenderer**—the "Mirror" that translates that primitive integer back into the `00:00` format using your `padStart` expertise.
+
+Would you like to discuss the **Modulo (%)** math for the minutes/seconds split before I show the implementation, or are you ready for the next block of code?
