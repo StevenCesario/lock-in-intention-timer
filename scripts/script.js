@@ -18,7 +18,7 @@ const ViewRenderer = {
         const m = Math.floor(seconds / 60);
 
         // And modulo gives us the remining seconds after dividing by 60
-        const s = seconds & 60;
+        const s = seconds % 60;
 
         // Convert the numbers to strings and pad them to guarantee 2 characters
         // Same method that I used in Vibe Salad!
