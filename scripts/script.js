@@ -27,4 +27,9 @@ const ViewRenderer = {
 
         return `${formattedMinutes}:${formattedSeconds}`;
     },
+
+    // Push the new state to the DOM
+    updateDisplay() {
+        timeDisplay.textContent = this.formatTime(StateBuffer.totalSeconds);
+    }
 }
