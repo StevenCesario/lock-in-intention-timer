@@ -74,5 +74,27 @@ const TimerEngine = {
         timeDisplay.setAttribute("contenteditable", "false");
         StateBuffer.isRunning = true;
         startBtn.textContent = "Pause";
+
+        // 3. The "Heartbeat" using setInterval
+        StateBuffer.intervalId = setInterval(() => {
+            StateBuffer.totalSeconds--;
+            ViewRenderer.updateDisplay();
+
+            // Our Stop condition
+            if (StateBuffer.totalSeconds <= 0) {
+                this.stop();
+            }
+        }, 1000);
+    },
+
+    stop() {
+        // Halt the Browser API from sending more tasks to the Task Queue
+        clearInterval(StateBuffer.intervalId);
+        StateBuffer.intervalId = null;
+        StateBuffer.isRunning = false;
+
+        // Unlock the buffer again and reset the button
+        timeDisplay.setAttribute("contenteditable", "true");
+        startBtn.textContent = "Lock In";
     }
-}
+};
