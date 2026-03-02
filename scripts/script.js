@@ -98,3 +98,12 @@ const TimerEngine = {
         startBtn.textContent = "Lock In";
     }
 };
+
+// CLICK EVENT
+startBtn.addEventListener('click', () => {
+    if (StateBuffer.isRunning) {
+        TimerEngine.stop();
+    } else {
+        TimerEngine.start();
+    }
+});
