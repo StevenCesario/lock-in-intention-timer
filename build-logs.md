@@ -202,7 +202,7 @@ To synthesize our HTML exploration before we pivot to the CSS logic, let’s aud
 
 ---
 
-## Node: [[The Execution Lifecycle#From Let's Cook Focus Timer Build Logs|Script Execution Protocols]]
+## Node: [[The Execution Lifecycle#From Lock In Focus Timer Build Logs|Script Execution Protocols]]
 
 **The Transition:** While `defer` in the `<head>` is the current "Golden Standard" for linear scripts, moving toward `type="module"` is a shift from **Global Execution** to **Encapsulated Logic**.
 
