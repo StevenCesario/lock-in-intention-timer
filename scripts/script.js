@@ -39,6 +39,6 @@ const ViewRenderer = {
 ViewRenderer.updateDisplay();
 
 // TIME PARSER (DOM String -> Primitive Integer)
-const timeParser = {
+const TimeParser = {
     // To be added
 }
