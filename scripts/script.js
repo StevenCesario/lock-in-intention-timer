@@ -95,6 +95,33 @@ const TimerEngine = {
     }
 };
 
+// INPUT "FIREWALL"
+timeDisplay.addEventListener('keydown', (e) => {
+    // We want to still allow "control" keys. Without these, the user wouldn't be able 
+    // to fix any potentional mistakes
+    const isControlKey = [
+        'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter'
+    ].includes(e.key);
+
+    // Allow numeric keys (0-9) using simple Regex
+    const isNumber = /^[0-9]$/.test(e.key);
+
+    // We need to allow the colon
+    const isColon = e.key === ':';
+
+    // Our rule: If it's NOT a number, NOT a control key, and NOT a colon...
+    if (!isNumber && !isControlKey && !isColon) {
+        // ...prevent it from even reaching the DOM
+        e.preventDefault();
+    }
+
+    // Special case: If they hit "Enter", we want to stop editing
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Stop Enter's default behavior of creating a new line. I didn't even realize this was a problem yesterday!
+        timeDisplay.blur(); // Remove focus from the element
+    }
+});
+
 // CLICK EVENT
 startBtn.addEventListener('click', () => {
     if (StateBuffer.isRunning) {
