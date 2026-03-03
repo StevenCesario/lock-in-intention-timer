@@ -1,5 +1,6 @@
-* "Anti-letters Firewall"
+* "Anti-letters Firewall" CHECK
 * localStorage implementation
 * Preventing more than two numbers on either side of the colon?
 * What should happen when the timer reaches 00:00?
 * If there is no blur on the timeDisplay and the user hits Enter again, start the timer
+* Allow the user to set the intention connected to the timer
