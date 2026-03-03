@@ -114,7 +114,13 @@ timeDisplay.addEventListener('keydown', (e) => {
         // ...prevent it from even reaching the DOM
         e.preventDefault();
     }
-})
+
+    // Special case: If they hit "Enter", we want to stop editing
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Stop Enter's default behavior of creating a new line. I didn't even realize this was a problem yesterday!
+        timeDisplay.blur(); // Remove focus from the element
+    }
+});
 
 // CLICK EVENT
 startBtn.addEventListener('click', () => {
