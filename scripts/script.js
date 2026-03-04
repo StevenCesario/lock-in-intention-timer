@@ -95,6 +95,7 @@ const TimerEngine = {
 
                 // UPDATE: Clear localStorage
                 StorageManager.clear_seconds();
+                StorageManager.clear_intention();
             }
         }, 1000);
     },
@@ -184,12 +185,16 @@ startBtn.addEventListener('click', () => {
         TimerEngine.stop();
     } else {
         TimerEngine.start();
+
+        // UPDATE: Store the user intention in localStorage!
+        StorageManager.save_intention(intentionInput.value);
     }
 });
 
 // INITIALIZATION
 // Now updated to check localStorage before anything
 const localStorageSeconds = StorageManager.load_seconds();
+const localStorageIntention = StorageManager.load_intention();
 
 if (localStorageSeconds !== null) {
     // If it's not null, it means that there is seconds saved. Update the StateBuffer to use it!
@@ -198,6 +203,12 @@ if (localStorageSeconds !== null) {
     // Start with the 45:00 from the HTML that we had earlier
     const rawText = timeDisplay.textContent;
     StateBuffer.totalSeconds = TimeParser.parseToSeconds(rawText);
+}
+
+if (localStorageIntention !== null) {
+    // Don't show the intention promp, show the Good Luck message immediately!
+    intentionPrompt.hidden = true;
+    intentionActive.hidden = false;
 }
 
 // Ensure the View matches our Source of Truth
