@@ -76,9 +76,15 @@ const TimerEngine = {
             StateBuffer.totalSeconds--;
             ViewRenderer.updateDisplay();
 
+            // UPDATE: Store current second primitive in localStorage!
+            StorageManager.save(StateBuffer.totalSeconds);
+
             // Our Stop condition
             if (StateBuffer.totalSeconds <= 0) {
                 this.stop();
+
+                // UPDATE: Clear localStorage
+                StorageManager.clear();
             }
         }, 1000);
     },
@@ -92,6 +98,30 @@ const TimerEngine = {
         // Unlock the buffer again and reset the button
         timeDisplay.setAttribute("contenteditable", "true");
         startBtn.textContent = "Lock In";
+
+        // UPDATE: Ensure we save the exact amount of seconds in localStorage
+        StorageManager.save(StateBuffer.totalSeconds);
+    }
+};
+
+// LOCALSTORAGE
+// Helper object to handle the string <-> integer conversion
+const StorageManager = {
+    // The key we'll use in localStorage
+    KEY: "focus_timer_seconds",
+
+    save(seconds) {
+        localStorage.setItem(this.KEY, seconds.toString());
+    },
+
+    load() {
+        const storageData = localStorage.getItem(this.KEY);
+        // If data exists, parse it to an integer. If not, return null
+        return storageData ? parseInt(storageData, 10) : null;
+    },
+
+    clear() {
+        localStorage.removeItem(this.KEY);
     }
 };
 
@@ -122,6 +152,7 @@ timeDisplay.addEventListener('keydown', (e) => {
     }
 });
 
+
 // CLICK EVENT
 startBtn.addEventListener('click', () => {
     if (StateBuffer.isRunning) {
@@ -132,8 +163,17 @@ startBtn.addEventListener('click', () => {
 });
 
 // INITIALIZATION
-// When the script first runs, make sure our State and DOM match. Start with the 45:00 from the HTML
-const rawText = timeDisplay.textContent;
-StateBuffer.totalSeconds = TimeParser.parseToSeconds(rawText);
+// Now updated to check localStorage before anything
+const localStorageData = StorageManager.load();
 
+if (localStorageData !== null) {
+    // If it's not null, it means that there is seconds saved. Update the StateBuffer to use it!
+    StateBuffer.totalSeconds = localStorageData;
+} else {
+    // Start with the 45:00 from the HTML that we had earlier
+    const rawText = timeDisplay.textContent;
+    StateBuffer.totalSeconds = TimeParser.parseToSeconds(rawText);
+}
+
+// Ensure the View matches our Source of Truth
 ViewRenderer.updateDisplay();
