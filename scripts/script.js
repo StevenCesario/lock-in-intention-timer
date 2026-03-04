@@ -209,6 +209,10 @@ if (localStorageIntention !== null) {
     // Don't show the intention promp, show the Good Luck message immediately!
     intentionPrompt.hidden = true;
     intentionActive.hidden = false;
+
+    // Show the locked intention that is stored in localStorage!
+    intentionInput.value = StorageManager.load_intention();
+    intentionInput.disabled = true;
 }
 
 // Ensure the View matches our Source of Truth
