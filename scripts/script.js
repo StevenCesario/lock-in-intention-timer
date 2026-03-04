@@ -76,9 +76,15 @@ const TimerEngine = {
             StateBuffer.totalSeconds--;
             ViewRenderer.updateDisplay();
 
+            // UPDATE: Store current second primitive in localStorage!
+            StorageManager.save(StateBuffer.totalSeconds);
+
             // Our Stop condition
             if (StateBuffer.totalSeconds <= 0) {
                 this.stop();
+
+                // UPDATE: Clear localStorage
+                StorageManager.clear();
             }
         }, 1000);
     },
@@ -92,6 +98,9 @@ const TimerEngine = {
         // Unlock the buffer again and reset the button
         timeDisplay.setAttribute("contenteditable", "true");
         startBtn.textContent = "Lock In";
+
+        // UPDATE: Ensure we save the exact amount of seconds in localStorage
+        StorageManager.save(StateBuffer.totalSeconds);
     }
 };
 
