@@ -87,14 +87,14 @@ const TimerEngine = {
             ViewRenderer.updateDisplay();
 
             // UPDATE: Store current second primitive in localStorage!
-            StorageManager.save(StateBuffer.totalSeconds);
+            StorageManager.save_seconds(StateBuffer.totalSeconds);
 
             // Our Stop condition
             if (StateBuffer.totalSeconds <= 0) {
                 this.stop();
 
                 // UPDATE: Clear localStorage
-                StorageManager.clear();
+                StorageManager.clear_seconds();
             }
         }, 1000);
     },
@@ -110,29 +110,44 @@ const TimerEngine = {
         startBtn.textContent = "Lock In";
 
         // UPDATE: Ensure we save the exact amount of seconds in localStorage
-        StorageManager.save(StateBuffer.totalSeconds);
+        StorageManager.save_seconds(StateBuffer.totalSeconds);
     }
 };
 
 // LOCALSTORAGE
 // Helper object to handle the string <-> integer conversion
+// UPDATE: Now also handles the key for the user intention
 const StorageManager = {
-    // The key we'll use in localStorage
-    KEY: "focus_timer_seconds",
+    // UPDATE: One localStorage key for the seconds, one for the intention
+    SECONDS_KEY: "focus_timer_seconds",
+    INTENTION_KEY: "focus_timer_intention",
 
-    save(seconds) {
-        localStorage.setItem(this.KEY, seconds.toString());
+    save_seconds(seconds) {
+        localStorage.setItem(this.SECONDS_KEY, seconds.toString());
     },
 
-    load() {
-        const storageData = localStorage.getItem(this.KEY);
+    load_seconds() {
+        const storageSeconds = localStorage.getItem(this.SECONDS_KEY);
         // If data exists, parse it to an integer. If not, return null
-        return storageData ? parseInt(storageData, 10) : null;
+        return storageSeconds ? parseInt(storageSeconds, 10) : null;
     },
 
-    clear() {
-        localStorage.removeItem(this.KEY);
-    }
+    clear_seconds() {
+        localStorage.removeItem(this.SECONDS_KEY);
+    },
+
+    save_intention(intention) {
+        localStorage.setItem(this.INTENTION_KEY, intention); // intention is already a string
+    },
+
+    load_intention() {
+        const storageIntention = localStorage.getItem(this.INTENTION_KEY);
+        return storageIntention ? storageIntention : null;
+    },
+
+    clear_intention() {
+        localStorage.removeItem(this.INTENTION_KEY);
+    },
 };
 
 // INPUT "FIREWALL"
@@ -174,11 +189,11 @@ startBtn.addEventListener('click', () => {
 
 // INITIALIZATION
 // Now updated to check localStorage before anything
-const localStorageData = StorageManager.load();
+const localStorageSeconds = StorageManager.load_seconds();
 
-if (localStorageData !== null) {
+if (localStorageSeconds !== null) {
     // If it's not null, it means that there is seconds saved. Update the StateBuffer to use it!
-    StateBuffer.totalSeconds = localStorageData;
+    StateBuffer.totalSeconds = localStorageSeconds;
 } else {
     // Start with the 45:00 from the HTML that we had earlier
     const rawText = timeDisplay.textContent;
