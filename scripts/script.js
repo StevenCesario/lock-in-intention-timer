@@ -2,6 +2,8 @@
 const timeDisplay = document.getElementById('time-display');
 const startBtn = document.getElementById('start-btn');
 const intentionInput = document.getElementById('intention-input');
+const intentionPrompt = document.getElementById('intention-prompt');
+const intentionActive = document.getElementById('intention-active');
 
 // STATE BUFFER (Our Source of Truth)
 // Time is stored purely as an integer representing seconds. Raw, primitive data
@@ -74,7 +76,10 @@ const TimerEngine = {
 
         // UPDATE: Lock the text input field!
         intentionInput.disabled = true;
-        // console.log("intentionInput: ", intentionInput);
+
+        // UPDATE: Swap the intention prompts
+        intentionPrompt.hidden = true;
+        intentionActive.hidden = false;
 
         // 3. The "Heartbeat" using setInterval
         StateBuffer.intervalId = setInterval(() => {
