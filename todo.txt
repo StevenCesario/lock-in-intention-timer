@@ -8,11 +8,8 @@
     * Change "What is your intention for these X minutes?" to "Good Luck! 🌱✨" upon clicking CHECK
     * localStorage implementation for the Intention CHECK
 
+Core functionality:
 * What should happen when the timer reaches 00:00?
-
-* Have everything else not "jump up" and cause visual whiplash as the Reset timer is shown
-* If there is no blur on the timeDisplay and the user hits Enter again, start the timer
-* timeDisplay.blur(); // Remove focus from the element Add focus to ther timer upon initialization
 
 Bugs:
 * Don't allow an empty intention
@@ -20,3 +17,9 @@ Bugs:
 * Preventing more than two numbers on either side of the colon?
 * Pressing "Lock In" with an invalid timer or intention shouldn't reveal the Reset Button
 
+UX improvements:
+* Have everything else not "jump up" and cause visual whiplash as the Reset timer is shown CHECK
+* If there is no blur on the timeDisplay and the user hits Enter again, start the timer
+* timeDisplay.blur(); // Remove focus from the element Add focus to ther timer upon initialization
+* Make the two buttons the same width regardless what mode we're in
+* Smooth transitions when the text is changed and the second button is shown
