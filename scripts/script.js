@@ -120,7 +120,7 @@ const TimerEngine = {
             this.haltBrowserAPI();
             StorageManager.clearSession();
             
-            // Manual DOM reset
+            // Manual full DOM reset
             timeDisplay.textContent = "45:00";
             StateBuffer.totalSeconds = 2700;
             timeDisplay.setAttribute("contenteditable", "true");
@@ -128,6 +128,7 @@ const TimerEngine = {
             intentionInput.disabled = false;
             intentionPrompt.hidden = false;
             intentionActive.hidden = true;
+            intentionEnd.hidden = true;
             resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
             startBtn.textContent = "Lock In";
         }
