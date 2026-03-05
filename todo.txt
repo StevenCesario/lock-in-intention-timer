@@ -9,7 +9,7 @@
     * localStorage implementation for the Intention CHECK
 
 Core functionality:
-* What should happen when the timer reaches 00:00? TO BE TACKLED
+* What should happen when the timer reaches 00:00? CHECK
 
 Bugs:
 * Don't allow an empty intention
