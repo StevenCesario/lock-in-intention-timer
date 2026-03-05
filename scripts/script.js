@@ -1,6 +1,7 @@
 // DOM POINTERS
 const timeDisplay = document.getElementById('time-display');
 const startBtn = document.getElementById('start-btn');
+const resetBtn = document.getElementById('reset-btn');
 const intentionInput = document.getElementById('intention-input');
 const intentionPrompt = document.getElementById('intention-prompt');
 const intentionActive = document.getElementById('intention-active');
@@ -91,7 +92,7 @@ const TimerEngine = {
 
             // Our Stop condition
             if (StateBuffer.totalSeconds <= 0) {
-                this.stop();
+                this.pause();
 
                 // UPDATE: Clear localStorage
                 StorageManager.clearSession();
@@ -99,18 +100,39 @@ const TimerEngine = {
         }, 1000);
     },
 
-    stop() {
+    pause() {
+        this.haltBrowserAPI();
+
+        // UPDATE: Refined Pause button behavior. No editing and "Continue" as the new text
+        startBtn.textContent = "Continue";
+
+        // UPDATE: Ensure we save the exact amount of seconds in localStorage
+        StorageManager.save(StorageManager.SECONDS_KEY, StateBuffer.totalSeconds);
+    },
+
+    reset() {
+        if(confirm("Are you sure you want to completely reset the timer?")) {
+            this.haltBrowserAPI();
+            StorageManager.clearSession();
+            
+            // Manual DOM reset
+            timeDisplay.textContent = "45:00";
+            StateBuffer.totalSeconds = 2700;
+            timeDisplay.setAttribute("contenteditable", "true");
+            intentionInput.value = "";
+            intentionInput.disabled = false;
+            intentionPrompt.hidden = false;
+            intentionActive.hidden = true;
+            resetBtn.hidden = true;
+            startBtn.textContent = "Lock In";
+        }
+    },
+
+    haltBrowserAPI() {
         // Halt the Browser API from sending more tasks to the Task Queue
         clearInterval(StateBuffer.intervalId);
         StateBuffer.intervalId = null;
         StateBuffer.isRunning = false;
-
-        // Unlock the buffer again and reset the button
-        timeDisplay.setAttribute("contenteditable", "true");
-        startBtn.textContent = "Lock In";
-
-        // UPDATE: Ensure we save the exact amount of seconds in localStorage
-        StorageManager.save(StorageManager.SECONDS_KEY, StateBuffer.totalSeconds);
     }
 };
 
@@ -171,16 +193,23 @@ timeDisplay.addEventListener('keydown', (e) => {
 });
 
 
-// CLICK EVENT
+// CLICK EVENTS
 startBtn.addEventListener('click', () => {
     if (StateBuffer.isRunning) {
-        TimerEngine.stop();
+        TimerEngine.pause();
     } else {
         TimerEngine.start();
 
         // UPDATE: Store the user intention in localStorage!
         StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
+
+        // UPDATE: Show the Reset button!
+        resetBtn.hidden = false;
     }
+});
+
+resetBtn.addEventListener('click', () => {
+    TimerEngine.reset();
 });
 
 // INITIALIZATION
