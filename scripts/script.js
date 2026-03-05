@@ -102,6 +102,9 @@ const TimerEngine = {
                 // The "Lock In" button should say "Set new intention"
                 startBtn.textContent = "Set New Intention";
 
+                // Hide the Reset button
+                resetBtn.classList.add('invisible');
+
                 // Clear localStorage
                 StorageManager.clearSession();
             }
