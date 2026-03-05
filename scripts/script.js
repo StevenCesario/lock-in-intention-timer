@@ -99,7 +99,10 @@ const TimerEngine = {
                 intentionActive.hidden = true;
                 intentionEnd.hidden = false;
 
-                // UPDATE: Clear localStorage
+                // The "Lock In" button should say "Set new intention"
+                startBtn.textContent = "Set New Intention";
+
+                // Clear localStorage
                 StorageManager.clearSession();
             }
         }, 1000);
