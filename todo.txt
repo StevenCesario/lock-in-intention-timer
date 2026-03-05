@@ -10,7 +10,7 @@
 
 * What should happen when the timer reaches 00:00?
 
-* Is there a way to now have everything else "jump up" and cause visual whiplash as the Reset timer is shown?
+* Have everything else not "jump up" and cause visual whiplash as the Reset timer is shown
 * If there is no blur on the timeDisplay and the user hits Enter again, start the timer
 * timeDisplay.blur(); // Remove focus from the element Add focus to ther timer upon initialization
 

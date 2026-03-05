@@ -123,7 +123,7 @@ const TimerEngine = {
             intentionInput.disabled = false;
             intentionPrompt.hidden = false;
             intentionActive.hidden = true;
-            resetBtn.hidden = true;
+            resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
             startBtn.textContent = "Lock In";
         }
     },
@@ -203,8 +203,8 @@ startBtn.addEventListener('click', () => {
         // UPDATE: Store the user intention in localStorage!
         StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
 
-        // UPDATE: Show the Reset button!
-        resetBtn.hidden = false;
+        // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
+        resetBtn.classList.remove('invisible');
     }
 });
 

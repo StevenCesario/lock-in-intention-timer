@@ -1587,3 +1587,93 @@ As John Carmack would say, focus on the **observable behavior** of the system. I
 Currently, when the timer hits zero, it stops and clears storage. But the user just stares at a "00:00" screen. Should we add a **"Reflection Protocol"** (a message that appears to congratulate them) or an **"Auditory Trigger"** (a simple beep)?
 
 I’ll be here in the "Foreign Office" when you're ready to lay the final bricks. Enjoy the offline time! 🌱
+
+
+That commit message strategy is pure gold. It signals to any senior developer reviewing your code that you aren't just hacking things together until they work; you are intentionally designing the architecture of the user experience.
+
+To fix this, we need to understand the "Physics" of the CSS rendering engine.
+
+## Node 1: The Geometry of the Jump (The Root Cause)
+
+You are experiencing a **Cumulative Layout Shift (CLS)**. Here is the structural trace of why it happens:
+
+1. **The Parent Rule:** Your `body` uses Flexbox to perfectly center everything vertically (`justify-content: center; align-items: center; min-height: 100vh;`).
+    
+2. **The Zero-Byte Allocation:** By default, the HTML `hidden` attribute applies `display: none` to the Reset button. To the CSS Layout Engine, this means the button takes up **0 pixels** of height.
+    
+3. **The Trigger:** When you click "Lock In," JavaScript removes the `hidden` attribute. The CSS Engine suddenly has to allocate height for the Reset button, plus the `2rem` gap from your `.timer-container`.
+    
+4. **The Whiplash:** The `.timer-container` instantly grows taller. Because the `body` is forcing the container to stay perfectly centered, it pushes the top of the container _upwards_ by exactly half of the new height. The timer jumps.
+    
+
+## Node 2: The "Pre-Allocated Buffer" Solution
+
+In C++, if you know an array might hold 2 items later, you allocate the memory for 2 items up front so you don't have to dynamically resize and copy the array at runtime.
+
+**We must do the exact same thing in CSS. We need to reserve the vertical space for the Reset button so the total height of `.timer-container` never changes, whether the button is visible or not.**
+
+Here is the most pragmatic way to implement this:
+
+#### 1. The HTML Update (Grouping the Controls)
+
+We will wrap both buttons in a dedicated container. Replace your current buttons with this:
+
+```
+        <div class="controls-container">
+            <button id="start-btn" class="control-btn">Lock In</button>
+            <button id="reset-btn" class="control-btn invisible">Reset</button> 
+        </div>
+```
+
+#### 2. The CSS Update
+
+Add this to the bottom of your `style.css`. We are introducing the `visibility` property.
+
+```
+/* ==========================================
+   Controls UI (Preventing Layout Shift)
+   ========================================== */
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    
+    /* We don't need to hardcode a height! The 'visibility' property below 
+       handles the space allocation perfectly. */
+}
+
+/* The Structural Duality of Hiding Elements:
+   display: none = Removes element from the layout entirely (Causes jumping)
+   visibility: hidden = Makes it invisible, but it still takes up exact physical space! */
+.invisible {
+    visibility: hidden;
+    pointer-events: none; /* Defensive: Prevents accidental invisible clicks */
+}
+```
+
+#### 3. The JavaScript Update
+
+Since we removed the native HTML `hidden` attribute and are now using our `.invisible` CSS class, you just need to swap how your JavaScript toggles the button.
+
+In your `start()` logic (or wherever you reveal the reset button):
+
+```
+// Change this:
+// resetBtn.hidden = false;
+
+// To this:
+resetBtn.classList.remove('invisible');
+```
+
+And in your `reset()` logic (if you chose Option A instead of `location.reload()`):
+
+```
+resetBtn.classList.add('invisible');
+```
+
+## The Socratic Check
+
+By using `visibility: hidden`, the browser calculates the height of the Reset button on initial load and locks that empty space into the layout geometry. When you remove the `.invisible` class, the button just "turns on" inside its already-reserved space.
+
+Implement these CSS and HTML changes. Click "Lock In." Does the timer remain completely static like a rock, fulfilling your `fix(ux)` commit requirement?

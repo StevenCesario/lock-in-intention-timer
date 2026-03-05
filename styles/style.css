@@ -109,3 +109,24 @@ body {
     border-bottom: 2px solid transparent;
     cursor: not-allowed;
 }
+
+/* ==========================================
+   Controls UI (Preventing Layout Shift)
+   ========================================== */
+.controls-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    
+    /* We don't need to hardcode a height! The 'visibility' property below 
+       handles the space allocation perfectly. */
+}
+
+/* The Structural Duality of Hiding Elements:
+   display: none = Removes element from the layout entirely (Causes jumping)
+   visibility: hidden = Makes it invisible, but it still takes up exact physical space! */
+.invisible {
+    visibility: hidden;
+    pointer-events: none; /* Defensive: Prevents accidental invisible clicks */
+}
