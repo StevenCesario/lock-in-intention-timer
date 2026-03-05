@@ -199,7 +199,9 @@ startBtn.addEventListener('click', () => {
     }
 });
 
-resetBtn.addEventListener('click', TimerEngine.reset);
+resetBtn.addEventListener('click', () => {
+    TimerEngine.reset();
+});
 
 // INITIALIZATION
 // Now updated to check localStorage before anything
