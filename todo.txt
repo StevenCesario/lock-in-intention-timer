@@ -3,8 +3,8 @@
 * Preventing more than two numbers on either side of the colon?
 * What should happen when the timer reaches 00:00?
 * If there is no blur on the timeDisplay and the user hits Enter again, start the timer
-* Reset button (with a `confirm`!)
-* Refine the behavior of the Reset Button and the Pause Button
+* Reset button (with a `confirm`!) CHECK
+* Refine the behavior of the Reset Button and the Pause Button CHECK
 
 * Allow the user to set the intention connected to the timer: CHECK
     * Lock the Intention Input upon clickin "Lock In" CHECK
