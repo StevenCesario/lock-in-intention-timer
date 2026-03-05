@@ -5,6 +5,7 @@ const resetBtn = document.getElementById('reset-btn');
 const intentionInput = document.getElementById('intention-input');
 const intentionPrompt = document.getElementById('intention-prompt');
 const intentionActive = document.getElementById('intention-active');
+const intentionEnd = document.getElementById('intention-end');
 
 // STATE BUFFER (Our Source of Truth)
 // Time is stored purely as an integer representing seconds. Raw, primitive data
@@ -12,6 +13,7 @@ const StateBuffer = {
     totalSeconds: 0,
     isRunning: false,
     intervalId: null,
+    intentionEndScreen: false,
 }
 
 // VIEW RENDERER (Our "Mirror")
@@ -37,6 +39,37 @@ const ViewRenderer = {
         timeDisplay.textContent = this.formatTime(StateBuffer.totalSeconds);
     }
 }
+
+// AUDIO ENGINE
+const AudioEngine = {
+    playDing() {
+        // Create an AudioContext (The 'Foreign Office' for sound)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create an oscillator (The sound generator)
+        const oscillator = audioCtx.createOscillator();
+        
+        // Create a gain node (The volume control)
+        const gainNode = audioCtx.createGain();
+
+        // Connect the nodes: Oscillator -> Volume -> Speakers
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        // Configure the sound
+        oscillator.type = 'sine'; // A smooth, clean tone
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // 880Hz = A5 note
+
+        // Configure the volume envelope (Fade out smoothly over 1 second)
+        gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime); // Start at full volume
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1); // Fade to near silence
+
+        // Play the sound
+        oscillator.start(audioCtx.currentTime);
+        // Stop the oscillator after the fade-out is complete
+        oscillator.stop(audioCtx.currentTime + 1); 
+    }
+};
 
 // TIME PARSER (DOM String -> Primitive Integer)
 const TimeParser = {
@@ -92,10 +125,26 @@ const TimerEngine = {
 
             // Our Stop condition
             if (StateBuffer.totalSeconds <= 0) {
-                this.pause();
+                this.haltBrowserAPI();
 
-                // UPDATE: Clear localStorage
+                // Swap the intention prompts from active to end
+                intentionActive.hidden = true;
+                intentionEnd.hidden = false;
+
+                // The "Lock In" button should say "Set new intention"
+                startBtn.textContent = "Set New Intention";
+
+                // Hide the Reset button
+                resetBtn.classList.add('invisible');
+
+                // Use our new intentionEndScreen bool in StateBuffer!
+                StateBuffer.intentionEndScreen = true;
+
+                // Clear localStorage
                 StorageManager.clearSession();
+
+                // NEW: Play the completion sound!
+                AudioEngine.playDing();
             }
         }, 1000);
     },
@@ -111,21 +160,20 @@ const TimerEngine = {
     },
 
     reset() {
-        if(confirm("Are you sure you want to completely reset the timer?")) {
-            this.haltBrowserAPI();
-            StorageManager.clearSession();
-            
-            // Manual DOM reset
-            timeDisplay.textContent = "45:00";
-            StateBuffer.totalSeconds = 2700;
-            timeDisplay.setAttribute("contenteditable", "true");
-            intentionInput.value = "";
-            intentionInput.disabled = false;
-            intentionPrompt.hidden = false;
-            intentionActive.hidden = true;
-            resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
-            startBtn.textContent = "Lock In";
-        }
+        this.haltBrowserAPI();
+        StorageManager.clearSession();
+        
+        // Manual full DOM reset
+        timeDisplay.textContent = "45:00";
+        StateBuffer.totalSeconds = 2700;
+        timeDisplay.setAttribute("contenteditable", "true");
+        intentionInput.value = "";
+        intentionInput.disabled = false;
+        intentionPrompt.hidden = false;
+        intentionActive.hidden = true;
+        intentionEnd.hidden = true;
+        resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
+        startBtn.textContent = "Lock In";
     },
 
     haltBrowserAPI() {
@@ -198,18 +246,29 @@ startBtn.addEventListener('click', () => {
     if (StateBuffer.isRunning) {
         TimerEngine.pause();
     } else {
-        TimerEngine.start();
+        // UPDATE: First check! Are we at the intentionEndScreen?
+        if (StateBuffer.intentionEndScreen) {
+            // Use the now-isolated reset method!
+            TimerEngine.reset();
 
-        // UPDATE: Store the user intention in localStorage!
-        StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
-
-        // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
-        resetBtn.classList.remove('invisible');
+            // Forgot this. Also set intentionEndScreen back to false!
+            StateBuffer.intentionEndScreen = false;
+        } else {
+            TimerEngine.start();
+    
+            // UPDATE: Store the user intention in localStorage!
+            StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
+    
+            // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
+            resetBtn.classList.remove('invisible');
+        }
     }
 });
 
 resetBtn.addEventListener('click', () => {
-    TimerEngine.reset();
+    if(confirm("Are you sure you want to completely reset the timer?")) {
+        TimerEngine.reset();
+    }
 });
 
 // INITIALIZATION
