@@ -30,3 +30,6 @@ UX improvements:
 * timeDisplay.blur(); // Remove focus from the element Add focus to ther timer upon initialization
 * Make the two buttons the same width regardless what mode we're in
 * Smooth transitions when the text is changed and the second button is shown
+
+Refactoring:
+* Initialization; see comment in PR #12
