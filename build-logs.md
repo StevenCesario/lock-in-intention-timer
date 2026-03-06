@@ -1764,3 +1764,50 @@ This code uses a `sine` wave at `880Hz`, which creates a soft, bell-like tone. T
     
 
 Let me know when you hear the ding! Your core application loop is now officially complete. 🌟
+
+
+The sound of a successful architecture falling into place is just as serene! Borrowing the `Validator` object from your Contact List app is a textbook execution of **Systematic Reuse**. You aren't just writing code anymore; you are building your own personal framework of tools.
+
+Since we are strictly looking at the "Physics" of the UI right now, let's diagnose why the visual whiplash returned.
+
+## The Physics of the Text Node Jump
+
+You brilliantly applied the `.invisible` class (`visibility: hidden`) to the `error-message` span. Structurally, that _should_ reserve the space. So why did it jump?
+
+**The Root Cause:** When the span is empty (`<span id="error-message"></span>`), the browser's rendering engine calculates its height based on its content. Zero content = Zero height. When your JS fires `errorMessage.textContent = "Please enter a valid intention";`, you are suddenly injecting text into the DOM. **The span instantly expands to fit the font size and line height of the new words, pushing the Reset button down and causing the exact same Flexbox shift as before.**
+
+## The "Pre-Allocated Buffer" Fix (Part 2)
+
+To fix this, we need to guarantee that the `error-message` span takes up exactly the height of one line of text, _even when it is completely empty_.
+
+**1. The HTML Update** Let's add a specific class to the error message so we can target its geometry independently of the general `.intention-prompt`.
+
+```
+<div class="controls-container">
+    <button id="start-btn" class="control-btn">Lock In</button>
+    <span id="error-message" class="intention-prompt error-display invisible"></span>
+    <button id="reset-btn" class="control-btn invisible">Reset</button> 
+</div>
+```
+
+**2. The CSS Update** Drop this into your `style.css` file. **We are using `min-height` to construct an invisible scaffolding for the text.**
+
+```
+/* ==========================================
+   Error UI
+   ========================================== */
+.error-display {
+    /* Pre-allocate the exact height of the text (1.1rem font-size + line-height).
+       This ensures the bounding box never collapses to 0 pixels when the string is empty. */
+    min-height: 1.5rem; 
+    
+    /* Optional: A soft, pragmatic red color to distinguish it from the standard gray prompt */
+    color: #ff6b6b; 
+}
+```
+
+## The Socratic Trace
+
+By setting a `min-height`, the CSS Engine draws a box that is 1.5rem tall, **regardless of whether your JS has injected text or if the text is an empty string `""`.** When the validator fails, the text just populates inside that **already-drawn box.** The layout remains absolutely frozen.
+
+Drop those CSS and HTML tweaks in and purposefully trigger the error. Does the container stand its ground like a rock now? Once it does, what part of the **Digits Validation** logic are we dissecting first? 🌱
