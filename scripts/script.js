@@ -157,7 +157,7 @@ const TimerEngine = {
         intentionInput.disabled = true;
 
         // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
-        resetBtn.classList.toggle('invisible'); // This should most likely not be toggle
+        resetBtn.classList.remove('invisible'); // This should most likely not be toggle
 
         // UPDATE: Swap the intention prompts
         intentionPrompt.hidden = true;
@@ -190,7 +190,7 @@ const TimerEngine = {
                 startBtn.textContent = "Set New Intention";
 
                 // Hide the Reset button
-                resetBtn.classList.toggle('invisible');
+                resetBtn.classList.add('invisible');
 
                 // Use our new intentionEndScreen bool in StateBuffer!
                 StateBuffer.intentionEndScreen = true;
@@ -227,7 +227,7 @@ const TimerEngine = {
         intentionPrompt.hidden = false;
         intentionActive.hidden = true;
         intentionEnd.hidden = true;
-        resetBtn.classList.toggle('invisible'); // UPDATE: Use invisible class instead of hidden property
+        resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
         startBtn.textContent = "Lock In";
     },
 
