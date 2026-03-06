@@ -156,6 +156,9 @@ const TimerEngine = {
         // UPDATE: Lock the text input field!
         intentionInput.disabled = true;
 
+        // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
+        resetBtn.classList.toggle('invisible');
+
         // UPDATE: Swap the intention prompts
         intentionPrompt.hidden = true;
         intentionActive.hidden = false;
@@ -307,9 +310,6 @@ startBtn.addEventListener('click', () => {
     
             // UPDATE: Store the user intention in localStorage!
             StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
-    
-            // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
-            resetBtn.classList.toggle('invisible');
         }
     }
 });
