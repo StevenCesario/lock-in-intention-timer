@@ -130,3 +130,15 @@ body {
     visibility: hidden;
     pointer-events: none; /* Defensive: Prevents accidental invisible clicks */
 }
+
+/* ==========================================
+   Error UI
+   ========================================== */
+.error-display {
+    /* Pre-allocate the exact height of the text (1.1rem font-size + line-height).
+       This ensures the bounding box never collapses to 0 pixels when the string is empty. */
+    min-height: 1.5rem; 
+    
+    /* Optional: A soft, pragmatic red color to distinguish it from the standard gray prompt */
+    color: #bb3f3f; 
+}

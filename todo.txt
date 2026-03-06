@@ -22,7 +22,7 @@ Bugs:
 
 UX improvements:
 * Have everything else not "jump up" and cause visual whiplash as the Reset timer is shown CHECK
-* Remove the visual whiplash that has been re-introduced with the error message haha
+* Remove the visual whiplash that has been re-introduced with the error message haha CHECK
 * If there is no blur on the timeDisplay and the user hits Enter again, start the timer
 * timeDisplay.blur(); // Remove focus from the element Add focus to ther timer upon initialization
 * Make the two buttons the same width regardless what mode we're in
