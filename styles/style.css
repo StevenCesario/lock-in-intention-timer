@@ -47,6 +47,12 @@ body {
     border-bottom: 2px solid #555;
 }
 
+/* NEW: Hint at the input nature of the Timer! */
+.time-display:hover {
+    cursor: text; /* Changes the mouse pointer to the 'I-beam' text cursor */
+    border-bottom: 2px solid #333; /* A subtle hint that it's an input field */
+}
+
 .control-btn {
     background-color: #333;
     color: #fff;
