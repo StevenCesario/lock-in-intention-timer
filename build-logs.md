@@ -1937,3 +1937,94 @@ Instead of mashing all of this into the "Firewall" listener, we should separate 
 Instead, create a new `document.addEventListener('keydown', ...)` block. Place your excellent `document.activeElement` logic inside it.
 
 Try wiring up that global listener using your `document.activeElement` check! Does setting up a "Global Microphone" make the event routing click into place?
+
+
+Your decision to hold off on further UX improvements until you get real user feedback is not just fair—it is the hallmark of a mature developer. **==_"Premature optimization is the root of all evil" applies to UX just as much as it applies to algorithms._==**
+
+Now, let's tackle the "Sleeping Timer" bug. You have just encountered a fundamental rule of modern web development: **The Background Tab Throttle.**
+
+## The Physics of the Throttled Engine
+
+When you run `setInterval(() => { ... }, 1000)` on a visible tab, the browser's "Foreign Office" executes that callback exactly once every second.
+
+**==However, browsers (especially Chrome and Safari) aggressively optimize battery life and CPU usage. When you switch to another tab, the browser looks at your hidden tab and says: _"The user isn't looking at this. I'm not going to waste CPU cycles running a loop 1,000 times a second."_==**
+
+==The browser intentionally **throttles** your `setInterval`. Instead of firing every 1,000ms, it might fire once every 10 seconds, or even once a minute! That is why your timer only ticked down 1 minute while your Fitbit ticked down 15.==
+
+## The Pragmatic Architecture (The Time Delta Fix)
+
+**==You cannot stop the browser from throttling your interval. That is a physical law of the environment. Instead, you must change your Source of Truth.==**
+
+Right now, your logic is: _"I assume the interval fired, so I will subtract 1 second."_ This is fragile. It relies on the browser keeping perfect time.
+
+The robust logic is: _"I don't care how often the interval fires. Every time it does, I will check the physical hardware clock, calculate exactly how much real-world time has passed since I started, and update my remaining seconds based on that delta."_
+
+## The Implementation Plan
+
+We are going to introduce `Date.now()`, which returns the exact current time in milliseconds directly from the computer's hardware crystal.
+
+**1. Update the StateBuffer** We need a new property to remember exactly what time the user clicked "Lock In."
+
+JavaScript
+
+```
+const StateBuffer = {
+    totalSeconds: 0,
+    isRunning: false,
+    intervalId: null,
+    intentionEndScreen: false,
+    endTime: null // NEW: The absolute Unix timestamp when the timer SHOULD end
+}
+```
+
+**2. Update `TimerEngine.start()`** Instead of just starting the interval, we calculate the absolute `endTime` first.
+
+JavaScript
+
+```
+    start() {
+        // ... (your existing setup and validation logic remains the same)
+
+        // 1. Calculate the absolute end time based on the hardware clock
+        // Date.now() gives current ms. totalSeconds * 1000 converts our remaining time to ms.
+        StateBuffer.endTime = Date.now() + (StateBuffer.totalSeconds * 1000);
+
+        // ... (your existing UI locking logic remains the same)
+
+        // 2. The new "Resilient Heartbeat"
+        StateBuffer.intervalId = setInterval(() => {
+            // Calculate how many ms are left between NOW and the END TIME
+            const msRemaining = StateBuffer.endTime - Date.now();
+            
+            // Convert that back to clean seconds and update the Source of Truth
+            StateBuffer.totalSeconds = Math.ceil(msRemaining / 1000);
+
+            ViewRenderer.updateDisplay();
+
+            // ... (your existing storage and Stop condition logic remains the same)
+        }, 1000);
+    }
+```
+
+## The Socratic Trace
+
+Let's trace what happens when you switch tabs with this new logic:
+
+1. You start a 20-minute timer. `endTime` is calculated as exactly 20 minutes from right now.
+    
+2. You switch tabs. The browser goes to sleep. It doesn't fire the interval for 5 whole minutes.
+    
+3. The browser finally wakes up and fires the interval _once_.
+    
+4. Your code doesn't subtract 1. Instead, it asks the hardware clock: _"What time is it now?"_
+    
+5. It sees that `Date.now()` is 5 minutes later. It calculates `endTime - Date.now()`.
+    
+6. It instantly updates `StateBuffer.totalSeconds` from 20:00 to 15:00.
+    
+7. The ViewRenderer repaints the DOM.
+    
+
+You have essentially built a system that "catches up" the moment it wakes up, making it completely immune to browser throttling.
+
+Does the concept of using a fixed `endTime` as your anchor point, rather than relying on a continuous subtraction loop, make sense? Try implementing this "Time Delta" logic and test it against your Fitbit! 🌱
