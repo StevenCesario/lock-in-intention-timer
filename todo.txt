@@ -23,7 +23,7 @@ Bugs:
     * The Start Button shouldn't say "Lock In", it should say "Continue" CHECK
     * The Reset button should be visible! CHECK
 * classList.toggle introduced a new bug: The Reset button is now fading in and out of existence at random. It needs strict remove and add CHECK
-* The timer is not ticking when we're in another tab???????
+* The timer is not ticking when we're in another tab??????? WE'RE LOOKING AT THIS
 
 UX improvements:
 * Have everything else not "jump up" and cause visual whiplash as the Reset timer is shown CHECK
