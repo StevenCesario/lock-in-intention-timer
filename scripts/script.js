@@ -269,7 +269,7 @@ const StorageManager = {
     }
 };
 
-// INPUT "FIREWALL"
+// TIMER INPUT "FIREWALL"
 timeDisplay.addEventListener('keydown', (e) => {
     // We want to still allow "control" keys. Without these, the user wouldn't be able 
     // to fix any potentional mistakes
@@ -290,20 +290,19 @@ timeDisplay.addEventListener('keydown', (e) => {
     }
 
     // Special case: If they hit "Enter", we want to stop editing
-    // UPDATE: We also want to be able to start the timer with Enter!
     if (e.key === 'Enter') {
-        if (document.activeElement !== timeDisplay && document.activeElement !== intentionInput) {
-            TimerEngine.start();
-        } else {
-            e.preventDefault(); // Stop Enter's default behavior of creating a new line. I didn't even realize this was a problem yesterday!
-            timeDisplay.blur(); 
-            intentionInput.blur(); // UPDATE: Remove focus from BOTH elements
-        }
+        e.preventDefault(); // Stop Enter's default behavior of creating a new line. I didn't even realize this was a problem yesterday!
+        timeDisplay.blur(); // Remove focus from the element
     }
 });
 
+// OTHER EVENTS LISTENERS
+intentionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        intentionInput.blur();
+    }
+})
 
-// CLICK EVENTS
 startBtn.addEventListener('click', () => {
     if (StateBuffer.isRunning) {
         TimerEngine.pause();
