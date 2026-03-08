@@ -15,6 +15,7 @@ const StateBuffer = {
     isRunning: false,
     intervalId: null,
     intentionEndScreen: false,
+    endTime: null // NEW: The absolute Unix timestamp the timer *should* end
 }
 
 // VIEW RENDERER (Our "Mirror")
@@ -147,6 +148,10 @@ const TimerEngine = {
             return;
         } 
 
+        // NEW: Calculate the absolute end time based on the hardware clock
+        // Date.now() gives current ms. totalSeconds * 1000 converts our remaining time to ms.
+        StateBuffer.endTime = Date.now() + (StateBuffer.totalSeconds * 1000);
+
         // 2. Lock the buffer! We don't want the user to be able to edit anything 
         // while the timer is running
         timeDisplay.setAttribute("contenteditable", "false");
@@ -170,10 +175,17 @@ const TimerEngine = {
         errorMessage.classList.toggle('invisible');
         errorMessage.textContent = '';
 
-        // 3. The "Heartbeat" using setInterval
+        // 3. UPDATED: The "Resilient Throttling-immune Heartbeat" using setInterval and endTime
         StateBuffer.intervalId = setInterval(() => {
-            StateBuffer.totalSeconds--;
-            ViewRenderer.updateDisplay();
+            // StateBuffer.totalSeconds--;
+            // NEW: We don't just do totalSeconds-- anymore, expecting the user to stay in the tab
+            // Instead, in two steps. 1: Calculate how many ms are left between *now* and the *end time*
+            const msRemaining = StateBuffer.endTime - Date.now();
+            
+            // Convert that back to clean seconds and update the Source of Truth
+            StateBuffer.totalSeconds = Math.ceil(msRemaining / 1000);
+
+            ViewRenderer.updateDisplay(); // This stays the same
 
             // UPDATE: Store current second primitive in localStorage!
             StorageManager.save(StorageManager.SECONDS_KEY, StateBuffer.totalSeconds);
