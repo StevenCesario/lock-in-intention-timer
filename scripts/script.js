@@ -175,10 +175,17 @@ const TimerEngine = {
         errorMessage.classList.toggle('invisible');
         errorMessage.textContent = '';
 
-        // 3. The "Heartbeat" using setInterval
+        // 3. UPDATED: The "Resilient Throttling-immune Heartbeat" using setInterval and endTime
         StateBuffer.intervalId = setInterval(() => {
-            StateBuffer.totalSeconds--;
-            ViewRenderer.updateDisplay();
+            // StateBuffer.totalSeconds--;
+            // NEW: We don't just do totalSeconds-- anymore, expecting the user to stay in the tab
+            // Instead, in two steps. 1: Calculate how many ms are left between *now* and the *end time*
+            const msRemaining = StateBuffer.endTime - Date.now();
+            
+            // Convert that back to clean seconds and update the Source of Truth
+            StateBuffer.totalSeconds = Math.ceil(msRemaining / 1000);
+
+            ViewRenderer.updateDisplay(); // This stays the same
 
             // UPDATE: Store current second primitive in localStorage!
             StorageManager.save(StorageManager.SECONDS_KEY, StateBuffer.totalSeconds);
