@@ -178,8 +178,11 @@ const TimerEngine = {
         StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
 
         // UPDATE: Hide and reset the error message
-        errorMessage.classList.toggle('invisible');
+        errorMessage.classList.add('invisible');
         errorMessage.textContent = '';
+
+        // UPDATE: Hide the warning message
+        warningMessage.classList.add('invisible');
 
         // 3. UPDATED: The "Resilient Throttling-immune Heartbeat" using setInterval and endTime
         StateBuffer.intervalId = setInterval(() => {
