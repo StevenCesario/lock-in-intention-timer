@@ -192,7 +192,9 @@ const TimerEngine = {
             const msRemaining = StateBuffer.endTime - Date.now();
             
             // Convert that back to clean seconds and update the Source of Truth
-            StateBuffer.totalSeconds = Math.ceil(msRemaining / 1000);
+            // UPDATE: We now use math.max to compare 0 and the calculated seconds, and return 
+            // whichever is higher. This acts as a hard floor. If seconds drop to -5, it returns 0.
+            StateBuffer.totalSeconds = Math.max(0, Math.ceil(msRemaining / 1000));
 
             ViewRenderer.updateDisplay(); // This stays the same
 
