@@ -101,6 +101,10 @@ body {
     padding: 0.5rem;
     font-family: inherit;
     transition: border-bottom 0.2s ease-in-out;
+
+    /* NEW: Defensive Textarea Properties */
+    resize: none; /* Prevents the user from dragging and breaking your layout */
+    overflow-y: hidden; /* Hides the native scrollbar */
 }
 
 /* Structural feedback when the user is actively typing their intention */

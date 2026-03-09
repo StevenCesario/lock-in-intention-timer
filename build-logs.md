@@ -2421,3 +2421,269 @@ By returning an object `{ isValid, seconds, error }` from your `validateInput`, 
     
 
 Does this structural separation of concerns feel like the brain-chemistry-altering architecture we are aiming for? 🚀
+
+
+This is the victory lap! You have built a remarkably solid, professional-grade state machine. To see that TODO list shrink to almost nothing is an incredible milestone.
+
+Your intuition is firing perfectly: **==there _is_ a specific HTML element designed exactly for longer text==**, and you only missed it because of a slight structural misconception.
+
+## Node 1: The "Single-Line" Physics of `<input>`
+
+You went looking for `type="textbox"` or something similar inside the `<input>` tag.
+
+**The Structural Reality:** **==The `<input>` element is, by its very definition in the DOM specification, a single-line control. No matter what CSS you apply to it, no matter how tall you make the box, the text inside an `<input>` will _never_ wrap to a second line. It will simply push horizontally into infinity, causing the exact "clipping" you see in your screenshot.==**
+
+## Node 2: The Multi-Line Sibling
+
+The element you are looking for doesn't use a `type` attribute because it is a completely separate HTML tag: the ==**`<textarea>`**.==
+
+Here is the structural duality between the two:
+
+- **`<input>`:** Self-closing tag. Single-line data (names, emails, short numbers).
+    
+- **`<textarea>`:** Requires an opening and closing tag. Multi-line data (paragraphs, essays, long intentions).
+    
+
+## The Pragmatic Implementation
+
+**To fix the clipping without breaking your beautiful, minimalist UI, you need to swap the HTML tag and add two specific defensive CSS properties to keep it looking clean.**
+
+**1. The HTML Swap** Replace your current `<input>` with this `<textarea>`. Notice we add a `rows` attribute to pre-allocate space for 2 lines of text.
+
+```
+<textarea 
+    id="intention-input" 
+    class="intention-input" 
+    placeholder="e.g., Complete the first 3 test exam exercises"
+    autocomplete="off"
+    spellcheck="false"
+    rows="2"
+></textarea>
+```
+
+**2. The CSS Defense** By default, browsers give textareas a draggable "resize" handle in the bottom right corner and ugly scrollbars. We want to strip those native behaviors away so it still looks exactly like your sleek input line.
+
+Update your existing `.intention-input` CSS class with these two additions:
+
+```
+.intention-input {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #333;
+    color: #f2f2f2;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 0.5rem;
+    font-family: inherit;
+    transition: border-bottom 0.2s ease-in-out;
+    
+    /* NEW: Defensive Textarea Properties */
+    resize: none; /* Prevents the user from dragging and breaking your layout */
+    overflow-y: hidden; /* Hides the native scrollbar */
+}
+```
+
+## The Socratic Trace
+
+Because you used `id="intention-input"` and `class="intention-input"`, your JavaScript DOM pointers and your CSS selectors will instantly attach to the new `<textarea>` without you needing to rewrite a single line of your engine logic. `.value`, `.disabled`, and `.blur()` all work identically on a `<textarea>`.
+
+Swap out the HTML node and drop in those two CSS properties. Do your longer intentions wrap beautifully to a second line now?
+
+
+This is the ultimate frontend developer rite of passage! You have just encountered the **"==Textarea Row Paradox==."**
+
+**It is incredibly frustrating. If you hardcode `rows="2"`, you are pre-allocating memory (screen space) for two lines, even if the user only types one. It looks top-heavy and strange. If you hardcode `rows="1"`, you set a strict "Visual Floor," and when the text wraps, it falls beneath that floor, resulting in the top half of the letters getting decapitated.**
+
+You absolutely can have your cake and eat it too. We are going to build an **==Auto-Expanding Textarea==**.
+
+## Node 1: The Limitations of Native CSS
+
+Historically, CSS has been "blind" to how much text is inside a `<textarea>`. It can only follow strict rules: "Be 50px tall" or "Be exactly 1 row tall."
+
+**==_To get a box that starts as 1 row but elastically stretches to 2 or 3 rows the exact millisecond the text wraps, we need to bridge the gap between the View (CSS) and the Content (The text). We do this by tapping into the DOM's physical geometry via JavaScript._==**
+
+## Node 2: The Geometry of `scrollHeight`
+
+Every DOM element has a hidden property called `scrollHeight`. This number represents the total physical height of the content _inside_ the box, even if that content has spilled below the visible floor.
+
+**The Logic:**
+
+1. Whenever the user types a letter, we reset the box's height to `auto` (shrinking it to its minimum size).
+    
+2. We immediately ask the browser: "How tall is the text right now?" (`scrollHeight`).
+    
+3. We inject that exact pixel value directly into the element's inline CSS style.
+    
+
+## The Implementation
+
+**1. The HTML** Keep your `<textarea>`, but confidently set it back to `rows="1"`.
+
+```
+<textarea 
+    id="intention-input" 
+    class="intention-input" 
+    placeholder="e.g., Complete the first 3 test exam exercises"
+    autocomplete="off"
+    spellcheck="false"
+    rows="1"
+></textarea>
+```
+
+**2. The JavaScript** Add this event listener right alongside your other `intentionInput.addEventListener('keydown', ...)` block. Note that we are listening for the `'input'` event, which fires every single time the content changes (typing, pasting, deleting).
+
+```
+// AUTO-EXPANDING TEXTAREA LOGIC
+intentionInput.addEventListener('input', () => {
+    // 1. Reset the height to 'auto' to allow shrinking if the user deletes text
+    intentionInput.style.height = 'auto';
+    
+    // 2. Dynamically allocate the exact vertical space needed using scrollHeight
+    intentionInput.style.height = intentionInput.scrollHeight + 'px';
+});
+```
+
+## The Socratic Trace
+
+When you load the page, the HTML `rows="1"` sets the **initial perfect baseline.** As you type a long intention and reach the edge of the container, the `'input'` event fires. **The browser calculates that the text just wrapped, increasing the `scrollHeight`. Your script instantly applies that new height to the CSS. ==The box seamlessly stretches downward without a single scrollbar in sight.==**
+
+**==When you backspace and delete the second line, the height resets to `auto`, recalculates the now-smaller `scrollHeight`, and snaps back up to a single row.==**
+
+Drop this Event Listener into your script! Does your intention input now breathe and flex exactly as the user requires?
+
+Once you verify this smooth expansion, would you like to tackle making the two buttons uniform in width, or dive into those Initialization refactoring thoughts you mentioned? 🌱
+
+
+I completely understand the bug, and your screenshot perfectly illustrates it!
+
+You are looking at _the "ghost" of a previous session_. **The text has been cleared, but the bottom border is hanging way down, leaving a massive, awkward gap below the placeholder.**
+
+Here is exactly what is happening under the hood, why your initialization attempt didn't work, and how to fix it with a single, elegant line of code.
+
+## Node 1: The Physics of "Inline Styles"
+
+When your auto-expand Event Listener runs, it executes this line: `intentionInput.style.height = intentionInput.scrollHeight + 'px';`
+
+What this actually does in the browser is inject an **Inline Style** directly into the HTML tag. Your DOM suddenly looks like this: `<textarea id="intention-input" style="height: 64px;" ...></textarea>`
+
+**The Root Cause:** When you clear the text (either by refreshing the page where the browser aggressively remembers form states, or by hitting your Reset button), the text disappears. **==_But the inline style is still there._==** The browser is strictly following orders: "Keep this box 64px tall, even if it's empty."
+
+## Node 2: Why your Initialization fix failed
+
+You tried to use the auto-expand logic in the Initialization block:
+
+```
+intentionInput.style.height = 'auto';
+intentionInput.style.height = intentionInput.scrollHeight + 'px';
+```
+
+This fails for two pragmatic reasons:
+
+1. **The Placeholder Anomaly:** **When a textarea is empty, `scrollHeight` can sometimes calculate the height of the _placeholder text_ or the default padding, rather than shrinking to true zero.**
+    
+2. **The Execution Timing:** **During the very first millisecond of page load, the browser hasn't fully painted the CSS Flexbox layout. If you ask for `scrollHeight` before the paint is finished, it returns an inaccurate number, permanently locking your textarea to a weird height.**
+    
+
+## The Pragmatic Fix: The "Style Teardown"
+
+**==Instead of trying to _recalculate_ the height of an empty box, we just need to _delete_ the inline style and give control back to your CSS and your `rows="1"` attribute.==**
+
+**In JavaScript, you remove an inline style by setting it to an empty string.**
+
+**1. Update Initialization:** Replace your two lines in the Initialization block with this single line:
+
+```
+// NEW: Strip away any lingering inline heights from browser caching
+intentionInput.style.height = ''; 
+```
+
+**2. Update the Reset Method!** You also need to add this to `TimerEngine.reset()`. Right now, when a user clicks the Reset button, your code clears the value (`intentionInput.value = "";`), but it leaves the inline height intact!
+
+Add it to your manual DOM reset list:
+
+```
+    reset() {
+        this.haltBrowserAPI();
+        StorageManager.clearSession();
+        
+        // Manual full DOM reset
+        timeDisplay.textContent = "45:00";
+        StateBuffer.totalSeconds = 2700;
+        timeDisplay.setAttribute("contenteditable", "true");
+        intentionInput.value = "";
+        
+        // NEW: Snap the textarea back to exactly 1 row!
+        intentionInput.style.height = ''; 
+        
+        intentionInput.disabled = false;
+        // ... (rest of your reset logic)
+    }
+```
+
+## The Synthesis
+
+**By setting `style.height = ''`, you are telling the DOM: _"Forget whatever custom height JS gave you earlier. Go back to following the rules in `style.css` and the HTML `rows` attribute."_ It instantly snaps back to a tight, single-line input.**
+
+Implement that empty string assignment. Does the "ghost gap" finally vanish on both page reload and Reset? 🚀
+
+
+This is the final boss of UI logic, and your frustration is completely justified! You are experiencing the classic **"==Hydration Desync==."** Let's look at the "Physics" of why it works when you type, but clips when you refresh.
+
+## Node 1: The "Silent Delivery"
+
+Think about how our auto-expand feature works: we attached a "Microphone" that listens for the `'input'` event (which fires every time a human presses a key).
+
+When you refresh the page, your Initialization logic says: `intentionInput.value = localStorageIntention;`
+
+**The Root Cause:** **==When JavaScript programmatically shoves text into an element using `.value`, it does so _silently_. It bypasses the keyboard entirely, which means the browser never fires the `'input'` event.==**
+
+**Because the event never fires, your auto-expand logic never runs. The textarea receives 3 lines of text, but strictly obeys its `rows="1"` HTML constraint, creating that terrible clipping effect.**
+
+## Node 2: The Synthetic Event Protocol
+
+**You don't need to duplicate the height-calculation logic in your Initialization block. _==We just need to force the browser to "ping" the microphone we already built.==_**
+
+In JavaScript, we can create and dispatch **==Synthetic Events==**. **==We can literally tell the DOM: _"Pretend the user just typed something right now."_==**
+
+## The Pragmatic Fix
+
+Go to your **Initialization** block. Find where you load the `localStorageIntention` into the `.value`. **Right after you inject the text, dispatch the event to force the resize, ==_before_ you disable the input!==**
+
+```
+if (localStorageIntention !== null) {
+    intentionPrompt.hidden = true;
+    intentionActive.hidden = false;
+
+    // 1. Inject the text (Silent Delivery)
+    intentionInput.value = localStorageIntention;
+
+    // 2. NEW: Manually fire the microphone to force the auto-expand calculation!
+    intentionInput.dispatchEvent(new Event('input'));
+
+    // 3. Lock the hardware
+    intentionInput.disabled = true;
+
+    startBtn.textContent = "Continue";
+    resetBtn.classList.remove('invisible');
+}
+```
+
+**_(Note: Keep the `intentionInput.style.height = '';` inside your `reset()` method, as that is still the perfect way to wipe the inline styles when clearing the board manually!)_**
+
+## The Socratic Trace
+
+When the page reloads:
+
+1. JS grabs your long intention from storage.
+    
+2. It drops it into the `<textarea>`.
+    
+3. **==`dispatchEvent` rings the bell.==**
+    
+4. Your existing event listener wakes up, sets the height to `auto`, calculates the new `scrollHeight` of your long text, and stretches the box perfectly.
+    
+5. The box is then safely disabled and locked.
+    
+
+Drop that `dispatchEvent` line in. Does your text hydrate and wrap perfectly on a fresh page load now?

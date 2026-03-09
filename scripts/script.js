@@ -247,6 +247,7 @@ const TimerEngine = {
         resetBtn.classList.add('invisible'); // UPDATE: Use invisible class instead of hidden property
         startBtn.textContent = "Lock In";
         intentionInput.focus(); // UPDATE: Auto-focus on the Intention Input!
+        intentionInput.style.height = ''; // UPDATE: Snap the textarea back to exactly 1 row!
     },
 
     haltBrowserAPI() {
@@ -313,7 +314,16 @@ timeDisplay.addEventListener('keydown', (e) => {
     }
 });
 
-// OTHER EVENTS LISTENERS
+// AUTO-EXPANDING TEXTAREA LOGIC
+intentionInput.addEventListener('input', () => {
+    // 1. Reset the height to 'auto' to allow shrinking if the user deletes text
+    intentionInput.style.height = 'auto';
+    
+    // 2. Dynamically allocate the exact vertical space needed using scrollHeight
+    intentionInput.style.height = intentionInput.scrollHeight + 'px';
+});
+
+// PRE-LOCK IN WARNING MESSAGE LOGIC
 timeDisplay.addEventListener('blur', () => {
     // Here is where this logic lives! Not in TimerEngine.start()! We want this to happen
     // *before* the user hits "Lock In", the second timerDisplay is not the activeElement
@@ -335,6 +345,7 @@ timeDisplay.addEventListener('blur', () => {
 
 })
 
+// OTHER EVENTS LISTENERS
 intentionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         intentionInput.blur();
@@ -345,7 +356,7 @@ intentionInput.addEventListener('keydown', (e) => {
         //     intentionInput.blur(); // Blur only if there is no error in the intention input! 
         // }
         // I can't implement this right now, I'm missing something. I'll return to this
-        // But you could also arugu that the UX is *better* by removing the focus every
+        // But you could also argue that the UX is *better* by removing the focus every
         // time there is an invalid input to further highlight that it is actually being
         // validated and that the error message has been *generated* rather than that it 
         // is stuck in place
@@ -388,7 +399,7 @@ resetBtn.addEventListener('click', () => {
 const localStorageSeconds = StorageManager.load(StorageManager.SECONDS_KEY);
 const localStorageIntention = StorageManager.load(StorageManager.INTENTION_KEY);
 
-// TODO: We need to change some stuff around here to ensure the logic is sound
+// TODO: We need to change some stuff around here to ensure the logic is sound?
 if (localStorageSeconds !== null) {
     // If it's not null, it means that there is seconds saved. Update the StateBuffer to use it!
     StateBuffer.totalSeconds = localStorageSeconds;
@@ -403,8 +414,13 @@ if (localStorageIntention !== null) {
     intentionPrompt.hidden = true;
     intentionActive.hidden = false;
 
-    // Show the locked intention that is stored in localStorage!
+    // Show the locked intention that is stored in localStorage
     intentionInput.value = localStorageIntention;
+
+    // NEW: Manually fire the microphone to force the auto-expand calculation!
+    intentionInput.dispatchEvent(new Event('input'));
+
+    // This stays the same, we still want to lock the input
     intentionInput.disabled = true;
 
     // I will just chuck the button logic here for now. Refactoring to be made later, I will just make something functional now
