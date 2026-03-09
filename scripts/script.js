@@ -328,7 +328,12 @@ timeDisplay.addEventListener('blur', () => {
     // i.e. 3601 seconds, show the warning message!
     if (parsedSeconds > 3600) {
         warningMessage.classList.remove('invisible'); // Never again just "lazy toggling" haha
+    } else {
+        // UPDATE: If they change it back to 60:00 or less, before hitting "Lock In",
+        // add the invisible class again haha!
+        warningMessage.classList.add('invisible'); // Yes, having add like this in the else will add it even in the cases where the digit value is already valid and the class is added but.. shuoldn't be too bad haha
     }
+
 })
 
 intentionInput.addEventListener('keydown', (e) => {
