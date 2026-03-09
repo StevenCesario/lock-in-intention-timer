@@ -44,6 +44,7 @@ const ViewRenderer = {
 
 // VALIDATOR
 const Validator = {
+    // To be updated
     // Rule: At least 3 characters for now. Will very most likely be updated!
     validateIntention(intention) {
         const cleanIntention = intention.trim();
@@ -55,6 +56,7 @@ const Validator = {
         return null; // No error
     },
 
+    // To be implemented
     // Rule: ?
     validateDigits(digits) {
         // To be added
