@@ -140,57 +140,45 @@ const TimeParser = {
 // EVENT LOOP
 const TimerEngine = {
     start() {
-        // 1. Scrape the current string from the DOM and update our Source of Truth
+        // UPDATE: Now uses the new orthogonal architecture of our Validator!
+
+        // 1. Scrape the raw DOM values
         const rawDigits = timeDisplay.textContent;
-
-        // TODO: Validate the raw input digits before updating the StateBuffer
-        StateBuffer.totalSeconds = TimeParser.parseToSeconds(rawDigits);
-
-        // Safety check: Don't start a zero-second timer
-        if (StateBuffer.totalSeconds <= 0) return; // To be moved to Validator?
-
-        // UPDATE: Also scrape the Intention input field! And validate it with our new Validator
         const rawIntention = intentionInput.value;
-        const validatedIntention = Validator.validateIntention(rawIntention);
 
-        // I'd like to believe that we can mash all validation here
-        if (validatedIntention !== null) {
+        // 2. Hand the raw data to our new "Gatekeeper" method in the Validator
+        const validationResult = Validator.validateInput(rawDigits, rawIntention);
+
+        if (!validationResult.isValid) {
+            // Access denied! Show the error and abort.
             errorMessage.classList.remove('invisible'); // Brain chemistry altering: this one should NOT be toggle! Upon repeated invalid input, the error message would toggle rather than being static and standing its ground!
-            errorMessage.textContent = validatedIntention;
-            return;
-        } 
+            errorMessage.textContent = validationResult.error;
+            return; 
+        }
 
-        // NEW: Calculate the absolute end time based on the hardware clock
+        // 3. Access granted! Clear previous errors and update the Source of Truth
+        errorMessage.classList.add('invisible');
+        errorMessage.textContent = '';
+        StateBuffer.totalSeconds = validationResult.seconds;
+
+        // Calculate the absolute end time based on the hardware clock
         // Date.now() gives current ms. totalSeconds * 1000 converts our remaining time to ms.
         StateBuffer.endTime = Date.now() + (StateBuffer.totalSeconds * 1000);
 
-        // 2. Lock the buffer! We don't want the user to be able to edit anything 
-        // while the timer is running
+        // 4. Lock the UI buffers! The culmination of at least 5+ branches and PRs haha. Their individual UPDATE comments are not needed anymore, and they are still visible in older versions of the code :)
         timeDisplay.setAttribute("contenteditable", "false");
         StateBuffer.isRunning = true;
         startBtn.textContent = "Pause";
-
-        // UPDATE: Lock the text input field!
         intentionInput.disabled = true;
-
-        // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
         resetBtn.classList.remove('invisible');
-
-        // UPDATE: Swap the intention prompts
         intentionPrompt.hidden = true;
         intentionActive.hidden = false;
-
-        // UPDATE: Store the user intention in localStorage!
-        StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
-
-        // UPDATE: Hide and reset the error message
-        errorMessage.classList.add('invisible');
-        errorMessage.textContent = '';
-
-        // UPDATE: Hide the warning message
         warningMessage.classList.add('invisible');
 
-        // 3. UPDATED: The "Resilient Throttling-immune Heartbeat" using setInterval and endTime
+        // Store the validated user intention in localStorage
+        StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
+
+        // 5. The upgraded "Resilient Throttling-immune Heartbeat" using setInterval and endTime
         StateBuffer.intervalId = setInterval(() => {
             // StateBuffer.totalSeconds--;
             // NEW: We don't just do totalSeconds-- anymore, expecting the user to stay in the tab
