@@ -7,6 +7,7 @@ const intentionPrompt = document.getElementById('intention-prompt');
 const intentionActive = document.getElementById('intention-active');
 const intentionEnd = document.getElementById('intention-end');
 const errorMessage = document.getElementById('error-message');
+const warningMessage = document.getElementById('warning-message');
 
 // STATE BUFFER (Our Source of Truth)
 // Time is stored purely as an integer representing seconds. Raw, primitive data
@@ -141,6 +142,10 @@ const TimerEngine = {
 
         // Safety check: Don't start a zero-second timer
         if (StateBuffer.totalSeconds <= 0) return; // To be moved to Validator?
+
+        // NEW: If we are looking at a timer larger than 60:00, i.e. 60:01, 
+        // i.e. 3601 seconds, show the warning message!
+        warningMessage.classList.add('invisible'); // Never again just "lazy toggling" haha
 
         // UPDATE: Also scrape the Intention input field! And validate it with our new Validator
         const rawIntention = intentionInput.value;
