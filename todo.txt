@@ -33,7 +33,7 @@ UX improvements:
 * timeDisplay.blur(); Do the opposite of this; Add focus to ther timer upon initialization CHECK (but on intentionInput and not timeDisplay haha, see PR #14)
 * Make the two buttons the same width regardless what mode we're in
 * Smooth transitions when the text is changed and the second button is shown
-* Warning message: "It is recommended to keep your focus sessions to 60 minutes or less per session" if minutes is > 60
+* Warning message: "It is recommended to keep your focus sessions to 60 minutes or less per session" if minutes is > 60 CHECK
 * Should we spell out the rule? Or is "Please enter a valid intention" enough? CHECK
 
 Refactoring:
