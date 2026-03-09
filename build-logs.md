@@ -2075,6 +2075,91 @@ You have officially graduated from "Writing Scripts" to "Architecting Systems." 
 
 Since the "Throttling" bug is checked off and you're waiting for user feedback, what is the next node on your map?
 
-- Are we diving into the **[[Digits Validation]]** (preventing `99:99`)?
+- Are we diving into the **Digits Validation** (preventing `99:99`)?
     
-- Or are we looking at **[[Button Uniformity]]** (ensuring "Lock In" and "Reset" are the same width)? 🌱
+- Or are we looking at **Button Uniformity** (ensuring "Lock In" and "Reset" are the same width)? 🌱
+
+
+This is the **"Edge Case Odyssey."** Moving from V1 validation (blocking letters) to V2 validation (enforcing business logic) is where a project stops being a "script" and starts being a **Professional Grade Tool**.
+
+Let’s break down your roadmap through the lens of **Structural Integrity** and **User Psychology**.
+
+---
+
+## Node 1: The Semantic Shift (Letters vs. Characters)
+
+Your goal to move from "3 characters" to "5 letters" is a move toward **==Meaningful Data==**.
+
+- **The Logic:** `!??` is technically "data," **but it isn't an _intention_**. By requiring letters, you force the user to actually engage with the "Focus" aspect of the app.
+    
+- **The UX Choice:** You asked if we should "spell out the rule."
+    
+    - **The Pragmatic Rule:** **==Never make the user guess why they failed.==** **If I type `!!!` and get "Please enter a valid intention," I'm frustrated. If I get "Intention must be at least 5 letters," I'm guided.** **==Specificity reduces friction.==**
+        
+
+---
+
+## Node 2: The Geometry of the Timer (The 59-Second Ceiling)
+
+This is the most complex part of your V2 upgrade. You have a **Structural Duality** here:
+
+1. **Strict Validation:** The user types `45:99`. You show an error: "Seconds cannot exceed 59." (The "Bouncer" approach).
+    
+2. **Auto-Correction (Normalization):** The user types `45:99`. Your `TimeParser` says, "Okay, that's 45 minutes + 99 seconds," and automatically converts it to `46:39`. (The "Helpful Assistant" approach).
+    
+
+**The Skillful Path:** **In timers, Normalization is usually preferred. If I'm in a rush and type `90` (assuming minutes), the app should just work. However, preventing `999:99` is necessary to keep the UI from breaking.**
+
+---
+
+## Node 3: The "Soft Warning" Protocol (The 60-Minute Nudge)
+
+This is **Behavioral Design**.
+
+- **You aren't _blocking_ the user from a 2-hour session, but you are providing "Expert Opinion" feedback.**
+    
+- **Implementation Thought:** **==This shouldn't necessarily be a "Red" error. It’s a "Yellow" toast or a sub-text. It’s the difference between a Hard Constraint (the app won't run) and a Soft Recommendation (the app runs, but warns you).==**
+    
+
+---
+
+## Node 4: The Order of Operations (Parse vs. Validate)
+
+You asked: _"Do we parse or validate the digits first?"_
+
+In a robust system, the order is usually:
+
+1. **==Sanitize==:** Clean the whitespace (Trim).
+    
+2. **==Validate Structure==:** Is there a colon? Are there numbers? (Regex).
+    
+3. **==Parse==:** Convert the "Map" (String) into "Directions" (Integers).
+    
+4. **==Validate Logic==:** Now that I have numbers, are they too big? Is the total zero?
+    
+
+**The "Profound Click" on `totalSeconds <= 0`:** **Yes, moving this to `Validator.validateDigits` is much cleaner. The `TimerEngine` should only start if the `Validator` gives it a "Green Light." ==The Engine shouldn't have to check the math; it should trust the Inspector.==**
+
+---
+
+## Node 5: Preventing "Overflow" (More than two numbers)
+
+**You want to prevent `100:00:00`.**
+
+- **The Firewall Strategy:** You can actually update your `keydown` listener to check the _length_ of the string before the key is even added.
+    
+- **The Validation Strategy:** If they paste in a giant number, the `Validator` catches it after the fact.
+    
+
+---
+
+## The Road Map Discussion
+
+To keep this structured, I suggest we tackle these in two "Waves":
+
+- **Wave A: The Intention Upgrade.** (Regex for letters, clear error messaging).
+    
+- **Wave B: The Timer Logic.** (Handling the colon, the 59-second limit, and the 60-minute warning).
+    
+
+**Which Wave do you want to start "Thinking" through first?** Wave A is a quick win for your brain chemistry; Wave B is the deeper architectural challenge. 🌱
