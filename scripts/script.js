@@ -44,15 +44,18 @@ const ViewRenderer = {
 
 // VALIDATOR
 const Validator = {
-    // To be updated
-    // Rule: At least 3 characters for now. Will very most likely be updated!
+    // UpdatedRule: At least 5 *letters*
     validateIntention(intention) {
         const cleanIntention = intention.trim();
 
-        const intentionRegex = /^.{3,}$/;
-        if (!intentionRegex.test(cleanIntention)) {
-            return "Please enter a valid intention";
+        // NEW: Extracts all Unicode letters (including å, ä, ö) globally
+        const letterMatches = cleanIntention.match(/\p{L}/gu);
+
+        // Check if the array exists and has at least 5 items
+        if (!letterMatches || letterMatches.length < 5) {
+            return "Please enter a valid intention (at least 5 letters required)";
         }
+
         return null; // No error
     },
 
