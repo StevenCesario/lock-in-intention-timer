@@ -34,10 +34,12 @@ UX improvements:
 * Warning message: "It is recommended to keep your focus sessions to 60 minutes or less per session" if minutes is > 60 CHECK
 * Should we spell out the rule? Or is "Please enter a valid intention" enough? CHECK
 * Have longer intentions not "clip" CHECK
+* Make it even more obvious that the digits are editable. Different colors behind it?
 
 UX polishes:
 * Make the two buttons the same width regardless what mode we're in
 * Smooth transitions when the text is changed and the second button is shown
+* Implement a "countdown to focus" à la "3, 2, 1.. GO"
 
 Refactoring:
 * Initialization; see comment in PR #12
