@@ -7,6 +7,7 @@ const intentionPrompt = document.getElementById('intention-prompt');
 const intentionActive = document.getElementById('intention-active');
 const intentionEnd = document.getElementById('intention-end');
 const errorMessage = document.getElementById('error-message');
+const warningMessage = document.getElementById('warning-message');
 
 // STATE BUFFER (Our Source of Truth)
 // Time is stored purely as an integer representing seconds. Raw, primitive data
@@ -44,32 +45,43 @@ const ViewRenderer = {
 
 // VALIDATOR
 const Validator = {
-    // Rule: At least 3 characters for now. Will very most likely be updated!
+    // Updated rule: At least 5 *letters*!
     validateIntention(intention) {
         const cleanIntention = intention.trim();
 
-        const intentionRegex = /^.{3,}$/;
-        if (!intentionRegex.test(cleanIntention)) {
-            return "Please enter a valid intention";
+        // NEW: Extracts all Unicode letters (including å, ä, ö) globally
+        const letterMatches = cleanIntention.match(/\p{L}/gu);
+
+        // Check if the array exists and has at least 5 items
+        if (!letterMatches || letterMatches.length < 5) {
+            return "Please enter a valid intention (at least 5 letters required)";
         }
+
         return null; // No error
     },
 
-    // Rule: ?
-    validateDigits(digits) {
-        // To be added
+    // Rule: Simply catch "The Zero Case"! Ensure the engine never starts with 0 or negative digits!
+    validateDigits(seconds) {
+        if (seconds <= 0) {
+            return "Timer must be set to at least 1 second.";
+        }
         return null;
     },
 
-    // A helper to check both at once
-    validateInput(digits, intention) {
-        const digitsError = this.validateDigits(digits);
-        if (digitsError) return digitsError;
+    // A helper to check both at once; Our "Gatekeepeer"
+    validateInput(rawDigits, rawIntention) {
+        // 1. Parse the digits
+        const parsedSeconds = TimeParser.parseToSeconds(rawDigits);
 
-        const intentionError = this.validateIntention(intention);
-        if (intentionError) return intentionError;
+        // 2. Validate the logic
+        const digitsError = this.validateDigits(parsedSeconds);
+        if (digitsError) return { isValid: false, error: digitsError };
 
-        return null; // Both are valid!
+        const intentionError = this.validateIntention(rawIntention);
+        if (intentionError) return { isValid: false, error: intentionError };
+
+        // Step 3: Return the clean, validated data!
+        return { isValid: true, seconds: parsedSeconds };
     }
 }
 
@@ -128,54 +140,45 @@ const TimeParser = {
 // EVENT LOOP
 const TimerEngine = {
     start() {
-        // 1. Scrape the current string from the DOM and update our Source of Truth
+        // UPDATE: Now uses the new orthogonal architecture of our Validator!
+
+        // 1. Scrape the raw DOM values
         const rawDigits = timeDisplay.textContent;
-
-        // TODO: Validate the raw input digits before updating the StateBuffer
-        StateBuffer.totalSeconds = TimeParser.parseToSeconds(rawDigits);
-
-        // Safety check: Don't start a zero-second timer
-        if (StateBuffer.totalSeconds <= 0) return; // To be moved to Validator?
-
-        // UPDATE: Also scrape the Intention input field! And validate it with our new Validator
         const rawIntention = intentionInput.value;
-        const validatedIntention = Validator.validateIntention(rawIntention);
 
-        // I'd like to believe that we can mash all validation here
-        if (validatedIntention !== null) {
+        // 2. Hand the raw data to our new "Gatekeeper" method in the Validator
+        const validationResult = Validator.validateInput(rawDigits, rawIntention);
+
+        if (!validationResult.isValid) {
+            // Access denied! Show the error and abort.
             errorMessage.classList.remove('invisible'); // Brain chemistry altering: this one should NOT be toggle! Upon repeated invalid input, the error message would toggle rather than being static and standing its ground!
-            errorMessage.textContent = validatedIntention;
-            return;
-        } 
+            errorMessage.textContent = validationResult.error;
+            return; 
+        }
 
-        // NEW: Calculate the absolute end time based on the hardware clock
+        // 3. Access granted! Clear previous errors and update the Source of Truth
+        errorMessage.classList.add('invisible');
+        errorMessage.textContent = '';
+        StateBuffer.totalSeconds = validationResult.seconds;
+
+        // Calculate the absolute end time based on the hardware clock
         // Date.now() gives current ms. totalSeconds * 1000 converts our remaining time to ms.
         StateBuffer.endTime = Date.now() + (StateBuffer.totalSeconds * 1000);
 
-        // 2. Lock the buffer! We don't want the user to be able to edit anything 
-        // while the timer is running
+        // 4. Lock the UI buffers! The culmination of at least 5+ branches and PRs haha. Their individual UPDATE comments are not needed anymore, and they are still visible in older versions of the code :)
         timeDisplay.setAttribute("contenteditable", "false");
         StateBuffer.isRunning = true;
         startBtn.textContent = "Pause";
-
-        // UPDATE: Lock the text input field!
         intentionInput.disabled = true;
-
-        // UPDATE: Show the Reset button! Now using the invisible class rather than the hidden property
         resetBtn.classList.remove('invisible');
-
-        // UPDATE: Swap the intention prompts
         intentionPrompt.hidden = true;
         intentionActive.hidden = false;
+        warningMessage.classList.add('invisible');
 
-        // UPDATE: Store the user intention in localStorage!
+        // Store the validated user intention in localStorage
         StorageManager.save(StorageManager.INTENTION_KEY, intentionInput.value.trim());
 
-        // UPDATE: Hide and reset the error message
-        errorMessage.classList.toggle('invisible');
-        errorMessage.textContent = '';
-
-        // 3. UPDATED: The "Resilient Throttling-immune Heartbeat" using setInterval and endTime
+        // 5. The upgraded "Resilient Throttling-immune Heartbeat" using setInterval and endTime
         StateBuffer.intervalId = setInterval(() => {
             // StateBuffer.totalSeconds--;
             // NEW: We don't just do totalSeconds-- anymore, expecting the user to stay in the tab
@@ -183,7 +186,9 @@ const TimerEngine = {
             const msRemaining = StateBuffer.endTime - Date.now();
             
             // Convert that back to clean seconds and update the Source of Truth
-            StateBuffer.totalSeconds = Math.ceil(msRemaining / 1000);
+            // UPDATE: We now use math.max to compare 0 and the calculated seconds, and return 
+            // whichever is higher. This acts as a hard floor. If seconds drop to -5, it returns 0.
+            StateBuffer.totalSeconds = Math.max(0, Math.ceil(msRemaining / 1000));
 
             ViewRenderer.updateDisplay(); // This stays the same
 
@@ -309,6 +314,27 @@ timeDisplay.addEventListener('keydown', (e) => {
 });
 
 // OTHER EVENTS LISTENERS
+timeDisplay.addEventListener('blur', () => {
+    // Here is where this logic lives! Not in TimerEngine.start()! We want this to happen
+    // *before* the user hits "Lock In", the second timerDisplay is not the activeElement
+    // anymore if it has been so
+
+    // Scrape the current string from the DOM like we do in TimerEngine.start() and parse it
+    const rawDigits = timeDisplay.textContent;
+    const parsedSeconds = TimeParser.parseToSeconds(rawDigits);
+
+    // If we are looking at a timer larger than 60:00, i.e. 60:01, 
+    // i.e. 3601 seconds, show the warning message!
+    if (parsedSeconds > 3600) {
+        warningMessage.classList.remove('invisible'); // Never again just "lazy toggling" haha
+    } else {
+        // UPDATE: If they change it back to 60:00 or less, before hitting "Lock In",
+        // add the invisible class again haha!
+        warningMessage.classList.add('invisible'); // Yes, having add like this in the else will add it even in the cases where the digit value is already valid and the class is added but.. shuoldn't be too bad haha
+    }
+
+})
+
 intentionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         intentionInput.blur();

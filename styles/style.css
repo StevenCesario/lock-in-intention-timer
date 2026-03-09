@@ -138,7 +138,7 @@ body {
 }
 
 /* ==========================================
-   Error UI
+   Error/Warning UI
    ========================================== */
 .error-display {
     /* Pre-allocate the exact height of the text (1.1rem font-size + line-height).
@@ -147,4 +147,9 @@ body {
     
     /* Optional: A soft, pragmatic red color to distinguish it from the standard gray prompt */
     color: #bb3f3f; 
+}
+
+.warning-display { /* Literally copied from above haha */
+    min-height: 1.5rem; 
+    color: #c67d3d; 
 }
