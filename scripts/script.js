@@ -399,11 +399,6 @@ resetBtn.addEventListener('click', () => {
 const localStorageSeconds = StorageManager.load(StorageManager.SECONDS_KEY);
 const localStorageIntention = StorageManager.load(StorageManager.INTENTION_KEY);
 
-// // NEW: Make sure that we don't have more than 1 rows in the intention 
-// // input upon initialization if it was auto-stretched at an earlier moment
-// // We're stripping away any lingering inline heights from browser caching
-// intentionInput.style.height = ''; 
-
 // TODO: We need to change some stuff around here to ensure the logic is sound?
 if (localStorageSeconds !== null) {
     // If it's not null, it means that there is seconds saved. Update the StateBuffer to use it!
