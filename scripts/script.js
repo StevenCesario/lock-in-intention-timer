@@ -143,10 +143,6 @@ const TimerEngine = {
         // Safety check: Don't start a zero-second timer
         if (StateBuffer.totalSeconds <= 0) return; // To be moved to Validator?
 
-        // NEW: If we are looking at a timer larger than 60:00, i.e. 60:01, 
-        // i.e. 3601 seconds, show the warning message!
-        warningMessage.classList.add('invisible'); // Never again just "lazy toggling" haha
-
         // UPDATE: Also scrape the Intention input field! And validate it with our new Validator
         const rawIntention = intentionInput.value;
         const validatedIntention = Validator.validateIntention(rawIntention);
@@ -319,6 +315,23 @@ timeDisplay.addEventListener('keydown', (e) => {
 });
 
 // OTHER EVENTS LISTENERS
+timeDisplay.addEventListener('blur', () => {
+    console.log('blur event listener!');
+    // 1. Scrape the current string from the DOM and update our Source of Truth
+    const rawDigits = timeDisplay.textContent;
+
+    // Validate the raw input digits before updating the StateBuffer
+    const parsedSeconds = TimeParser.parseToSeconds(rawDigits);
+
+    console.log("Parsed seconds: ", parsedSeconds);
+
+    if (parsedSeconds > 3600) {
+        // NEW: If we are looking at a timer larger than 60:00, i.e. 60:01, 
+        // i.e. 3601 seconds, show the warning message!
+        warningMessage.classList.remove('invisible'); // Never again just "lazy toggling" haha
+    }
+})
+
 intentionInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
         intentionInput.blur();
