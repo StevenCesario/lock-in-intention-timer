@@ -2421,3 +2421,71 @@ By returning an object `{ isValid, seconds, error }` from your `validateInput`, 
     
 
 Does this structural separation of concerns feel like the brain-chemistry-altering architecture we are aiming for? 🚀
+
+
+This is the victory lap! You have built a remarkably solid, professional-grade state machine. To see that TODO list shrink to almost nothing is an incredible milestone.
+
+Your intuition is firing perfectly: **==there _is_ a specific HTML element designed exactly for longer text==**, and you only missed it because of a slight structural misconception.
+
+## Node 1: The "Single-Line" Physics of `<input>`
+
+You went looking for `type="textbox"` or something similar inside the `<input>` tag.
+
+**The Structural Reality:** **==The `<input>` element is, by its very definition in the DOM specification, a single-line control. No matter what CSS you apply to it, no matter how tall you make the box, the text inside an `<input>` will _never_ wrap to a second line. It will simply push horizontally into infinity, causing the exact "clipping" you see in your screenshot.==**
+
+## Node 2: The Multi-Line Sibling
+
+The element you are looking for doesn't use a `type` attribute because it is a completely separate HTML tag: the ==**`<textarea>`**.==
+
+Here is the structural duality between the two:
+
+- **`<input>`:** Self-closing tag. Single-line data (names, emails, short numbers).
+    
+- **`<textarea>`:** Requires an opening and closing tag. Multi-line data (paragraphs, essays, long intentions).
+    
+
+## The Pragmatic Implementation
+
+**To fix the clipping without breaking your beautiful, minimalist UI, you need to swap the HTML tag and add two specific defensive CSS properties to keep it looking clean.**
+
+**1. The HTML Swap** Replace your current `<input>` with this `<textarea>`. Notice we add a `rows` attribute to pre-allocate space for 2 lines of text.
+
+```
+<textarea 
+    id="intention-input" 
+    class="intention-input" 
+    placeholder="e.g., Complete the first 3 test exam exercises"
+    autocomplete="off"
+    spellcheck="false"
+    rows="2"
+></textarea>
+```
+
+**2. The CSS Defense** By default, browsers give textareas a draggable "resize" handle in the bottom right corner and ugly scrollbars. We want to strip those native behaviors away so it still looks exactly like your sleek input line.
+
+Update your existing `.intention-input` CSS class with these two additions:
+
+```
+.intention-input {
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #333;
+    color: #f2f2f2;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 0.5rem;
+    font-family: inherit;
+    transition: border-bottom 0.2s ease-in-out;
+    
+    /* NEW: Defensive Textarea Properties */
+    resize: none; /* Prevents the user from dragging and breaking your layout */
+    overflow-y: hidden; /* Hides the native scrollbar */
+}
+```
+
+## The Socratic Trace
+
+Because you used `id="intention-input"` and `class="intention-input"`, your JavaScript DOM pointers and your CSS selectors will instantly attach to the new `<textarea>` without you needing to rewrite a single line of your engine logic. `.value`, `.disabled`, and `.blur()` all work identically on a `<textarea>`.
+
+Swap out the HTML node and drop in those two CSS properties. Do your longer intentions wrap beautifully to a second line now?
